@@ -5,7 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import com.bedu.inventario.entity.Marca;
 import com.bedu.inventario.entity.Producto;
+import com.bedu.inventario.repository.MarcaRepository;
 import com.bedu.inventario.repository.ProductoRepository;
 
 @SpringBootApplication
@@ -17,34 +19,32 @@ public class InventarioApplication {
 
 	@SuppressWarnings("unused")
 	@Bean
-    public CommandLineRunner demo(ProductoRepository repository) {
+    public CommandLineRunner demo(ProductoRepository productoRepository, MarcaRepository marcaRepository) {
         return (args) -> {
-            // Guardar algunos productos
-            repository.save(new Producto("Laptop", "Portátil de 16 pulgadas", 1200.00));
-            repository.save(new Producto("Teclado mecánico", "Switch azul", 800.00));
-            repository.save(new Producto("Mouse gamer", "Alta precisión", 600.00));
-			repository.save(new Producto("Targeta gráfica", "GTRX", 450));
+			//guardar al menos dos marcas
+			Marca apple = new Marca("Apple");
+			Marca samsung = new Marca("Samsung");
+			marcaRepository.save(apple);
+			marcaRepository.save(samsung);
 
-            // Mostrar todos los productos
-            System.out.println("📂 Productos disponibles:");
-            repository.findAll().forEach(System.out::println);
+            // Guardar al menos dos productos por cada marca
+            productoRepository.save(new Producto("iPhone 11", "Parecido al 12", 15000.00, apple));
+            productoRepository.save(new Producto("iPad Pro", "Más grande que la anterior", 14000.00, apple));
+            productoRepository.save(new Producto("Galaxy S23", "Buena cámara", 7000.00, samsung));
+            productoRepository.save(new Producto("Smart TV", "12 pulgadas", 13000.00, samsung));
+            
 
-            // Buscar por nombre parcial
-            System.out.println("\n🔍 Productos que contienen 'Lap':");
-            repository.findByNombreContaining("Lap").forEach(System.out::println);
-
-			// imprimir productos con precio mayor a 500
-			System.out.println("\nProductos mayores a 500.00:");
-			repository.findByPrecioGreaterThan(500.00).forEach(System.out::println);
-
-			// imprimir productos con precio entre 400 y 1000
-			System.out.println("\nProductos con precio entre 400 y 1000");
-			repository.findByPrecioBetween(400.00, 1000.00).forEach(System.out::println);
-
-			// imprimir productos que comiencen con "M" o "m"
-			System.out.println("\nProductos que comienzan con 'M' o 'm':");
-			repository.findByNombreStartingWithIgnoreCase("M").forEach(System.out::println);
+			//salida en consola
+			System.out.println("-- Productos por marca: --");
+			marcaRepository.findAll().forEach(marca -> {
+				System.out.println("* " + marca.getNombre() + ":");
+				productoRepository.findAll().stream()
+					.filter(p -> p.getMarca().getId().equals(marca.getId()))
+					.forEach(p -> System.out.println("   - " + p.getNombre()));
+			});
         };
+
+		//https://stackoverflow.com/questions/60651244/process-command-c-program-files-java-jdk-bin-java-exe-finished-with-non-zer
     }
 
 }
